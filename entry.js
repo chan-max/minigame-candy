@@ -1,8 +1,7 @@
-import * as THREE from 'three'
+const THREE  = require('./modules/three.js')
 
 
 function createGame(canvas) {
-
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000);
   const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true});
@@ -31,11 +30,6 @@ function createGame(canvas) {
   animate();
 }
 
-let canvas = document.createElement('canvas')
-canvas.width = document.body.clientWidth
-canvas.height = document.body.clientHeight
-createGame(document.body.appendChild(canvas))
-
-
-
-
+module.exports = {
+  createGame
+}

@@ -1,4 +1,4 @@
-const core = require('./main.js')
+const core = require('./entry.js')
 
 let systemInfo = tt.getSystemInfoSync();
 let canvas = tt.createCanvas();
