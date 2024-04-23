@@ -1,7 +1,10 @@
 import * as THREE from 'three'
 
 
-function createGame(canvas) {
+export function createGame({
+  THREE,
+  canvas
+}) {
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000);
@@ -32,9 +35,13 @@ function createGame(canvas) {
 }
 
 let canvas = document.createElement('canvas')
+document.body.appendChild(canvas)
 canvas.width = document.body.clientWidth
 canvas.height = document.body.clientHeight
-createGame(document.body.appendChild(canvas))
+createGame({
+  THREE,
+  canvas
+})
 
 
 
