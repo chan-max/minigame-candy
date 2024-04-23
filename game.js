@@ -4,9 +4,7 @@ let canvas = tt.createCanvas();
 canvas.width = systemInfo.windowWidth;
 canvas.height = systemInfo.windowHeight;
 
-// const THREE  = require('./modules/three.js')
 const DOUYIN_THREE = require('./modules/douyin-three.js')
-
 
 const THREE = DOUYIN_THREE.getThree(canvas)
 createGame({
