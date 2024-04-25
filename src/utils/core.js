@@ -88,6 +88,7 @@ export class ThreeController {
         THREE,
         canvas
     }) {
+        window.threeController = this
         this.THREE = THREE
         this.canvas = canvas
         this.camera = new this.THREE.PerspectiveCamera(75, this.canvas.width / this.canvas.height, 0.1, 1000);
