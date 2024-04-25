@@ -14,7 +14,7 @@ class CandyEngine {
       canvas
     })
 
-    this.initChessBoard()
+    // this.initChessBoard()
   }
 
 
@@ -59,3 +59,4 @@ function createGame(options) {
 export {
   createGame
 }
+
