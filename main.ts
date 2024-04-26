@@ -3,7 +3,7 @@ const { createGame } = require('./index')
 import VConsole from 'vconsole'
 
 new VConsole({
-  mode:'dark'
+  mode: 'dark' as any
 })
 
 let canvas = document.createElement('canvas')
@@ -14,7 +14,7 @@ canvas.height = document.body.clientHeight
 createGame({
   THREE,
   canvas
-}) 
+})
 
 // import { Application } from 'pixi.js';
 

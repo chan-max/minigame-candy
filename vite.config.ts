@@ -16,7 +16,7 @@ export default defineConfig({
     plugins: [
         // 2. 添加以下代码
         requireTransform({
-            fileRegex: /.js$|.vue$/,
+            fileRegex: /.ts$|.vue$/,
         }),
     ],
 })

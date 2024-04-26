@@ -21,8 +21,12 @@ import {
     TextureLoader,
     CubeTextureLoader,
     BackSide,
-    PointLight
+    PointLight,
+    Color,
+    PlaneGeometry,
+    MeshStandardMaterial
 } from "three";
+import * as THREE from 'three'
 
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
@@ -91,11 +95,11 @@ export class ThreeController {
         window.threeController = this
         this.THREE = THREE
         this.canvas = canvas
-        this.camera = new this.THREE.PerspectiveCamera(75, this.canvas.width / this.canvas.height, 0.1, 1000);
+        this.camera = new PerspectiveCamera(75, this.canvas.width / this.canvas.height, 0.1, 1000);
         this.camera.lookAt(0, 0, 0);
         this.camera.position.set(0, 0, 1)
-        this.renderer = new this.THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-        this.scene = new this.THREE.Scene()
+        this.renderer = new WebGLRenderer({ canvas: canvas, antialias: true });
+        this.scene = new Scene()
         this.scene
         this.resizeObserver = new ResizeObserver(
             () => {
@@ -112,8 +116,8 @@ export class ThreeController {
         this.controller.dampingFactor = 0.1; // 设置阻尼强度
         this.resizeObserver.observe(document.body);
         this.renderer.setSize(canvas.width, canvas.height);
-
-        this.camera.position.z = 20;
+        this.renderer.shadowMap.enabled = true
+        this.camera.position.z = 11;
 
         this.render()
 
@@ -148,24 +152,38 @@ export class ThreeController {
     }
 
     async init() {
-        const ambientLight = new this.THREE.AmbientLight(0xffffff, 0.5); // 设置颜色和强度
+        const ambientLight = new AmbientLight(0xffffff, 2.2); // 设置颜色和强度
         this.scene.add(ambientLight);
 
-        // 添加平行光
-        const directionalLight1 = new DirectionalLight(0xffffff, 3); // 设置颜色和强度
-        directionalLight1.position.set(1, 1, 1); // 设置光源位置
-        this.scene.add(directionalLight1);
+        let light = new THREE.SpotLight( 0xffffff, 120 ); // 使用SpotLight
+        light.position.set(0,0,10); //设置光源的位置
+        light.castShadow = true; //允许光源产生阴影
 
-        // 添加平行光
-        const directionalLight2 = new DirectionalLight(0xffffff, 3); // 设置颜色和强度
-        directionalLight2.position.set(-1, -1, -1); // 设置光源位置
-        this.scene.add(directionalLight2);
+        let light2 = new THREE.SpotLight( 0xffffff, 200 ); // 使用SpotLight
+        light2.position.set(10,10,10); //设置光源的位置
+        light2.castShadow = true; //允许光源产生阴影
 
-        // 添加点光源
-        const pointLight = new PointLight(0xffffff, 10); // 设置颜色和强度
-        pointLight.position.set(0, 0, 2); // 设置光源位置
-        this.scene.add(pointLight);
 
+        let light3 = new THREE.SpotLight( 0xffffff, 200 ); // 使用SpotLight
+        light3.position.set(10,-10,10); //设置光源的位置
+        light3.castShadow = true; //允许光源产生阴影
+
+
+        let light4 = new THREE.SpotLight( 0xffffff, 200 ); // 使用SpotLight
+        light4.position.set(-10,10,10); //设置光源的位置
+        light4.castShadow = true; //允许光源产生阴影
+    
+        let light5 = new THREE.SpotLight( 0xffffff, 200 ); // 使用SpotLight
+        light5.position.set(-10,-10,10); //设置光源的位置
+        light5.castShadow = true; //允许光源产生阴影
+
+        //设置光源产生阴影的一些参数，可以根据场景需要进行调整
+        
+        this.scene.add( light );
+        this.scene.add( light2 );
+        this.scene.add( light3 );
+        this.scene.add( light4 );
+        this.scene.add( light5 );
     }
 
     render() {
@@ -175,42 +193,68 @@ export class ThreeController {
 
     // 获取随机颜色
     getRandomColor() {
-        return new this.THREE.Color(Math.random() * 0xffffff);
+        return new Color(Math.random() * 0xffffff);
     }
 
-    loadGltf = loadGltf
+    gltfCache = {}
+
+    public useGltf(name, url) {
+        if (this.gltfCache[name]) {
+
+            const copy = {
+                ...this.gltfCache[name],
+                scene: this.gltfCache[name].scene.clone()
+            }
+
+            return Promise.resolve(copy)
+        } else {
+            return new Promise(async (resolve, reject) => {
+
+                // 缓存该模型
+                const gltf: any = await loadGltf(url)
+                this.gltfCache[name] = gltf
+
+                // 第一个也会生成克隆的模型
+                let returnGltf = await this.useGltf(name,url)
+                resolve(returnGltf)
+            })
+        }
+    }
 
     loadTexture = loadTexture
 
     addPlaneBackground() {
-      var aspectRatio = this.width / this.height;
-      var canvas = document.createElement('canvas');
-      canvas.width = this.width
-      canvas.height = this.height
-      var ctx = canvas.getContext('2d');
-      document.body.appendChild(canvas);
-      var gradient = ctx.createRadialGradient(this.width / 2, this.height / 2, 0, this.width / 2, this.height / 2, Math.max(this.width, this.height) / 2);
-      // 设定颜色渐变
-      gradient.addColorStop(0, 'hsl(295,91%,74%)');
-      gradient.addColorStop(1, 'hsl(295,81%,40%)');
+        var aspectRatio = this.width / this.height;
+        var canvas = document.createElement('canvas');
+        canvas.width = this.width
+        canvas.height = this.height
+        var ctx: any = canvas.getContext('2d');
+        document.body.appendChild(canvas);
+        var gradient = ctx.createRadialGradient(this.width / 2, this.height / 2, 60, this.width / 2, this.height / 2, Math.max(this.width, this.height) / 2);
+        // 设定颜色渐变
+        gradient.addColorStop(0, 'hsl(295,91%,50%)');
+        gradient.addColorStop(1, 'hsl(295,91%,30%)');
 
-      // 应用渐变到整个 canvas
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, this.width, this.height);
+        // 应用渐变到整个 canvas
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, this.width, this.height);
 
-      var geometry = new this.THREE.PlaneGeometry(30,30 / aspectRatio);
+        let rule = 13
 
-      var shadowTexture = new this.THREE.Texture(canvas);
-      shadowTexture.needsUpdate = true;
+        var geometry = new PlaneGeometry(rule, rule / aspectRatio);
 
-      var material = new this.THREE.MeshBasicMaterial({
-          map: shadowTexture,
-          side: this.THREE.DoubleSide
-      });
+        var shadowTexture = new Texture(canvas);
+        shadowTexture.needsUpdate = true;
 
-     var  mesh = new this.THREE.Mesh(geometry, material);
-     mesh.position.set(0,0,-10)
-      this.scene.add(mesh);
+        var material = new MeshStandardMaterial({
+            map: shadowTexture,
+            side: DoubleSide
+        });
+
+        var mesh = new Mesh(geometry, material);
+        mesh.receiveShadow = true;
+        mesh.position.set(0, 0, -3)
+        this.scene.add(mesh);
     }
 }
 
