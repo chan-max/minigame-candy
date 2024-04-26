@@ -78,21 +78,40 @@ export class ThreeController {
     // 画布
     canvas
 
+    fov = 75
+
+    cameraZ = 11
+
+    // 宽高比
+    get aspectRatio(){
+        return this.width / this.height
+    }
+
+    // 画布的宽
     get width() {
         return this.canvas.clientWidth
     }
 
+    // 画布的高
     get height() {
         return this.canvas.clientHeight
     }
 
+    get h(){
+        return 2 * Math.tan( (this.fov / 2) * Math.PI / 180 ) * this.cameraZ;
+    }
 
+    get w(){
+       return this.h * this.aspectRatio;
+    }
+
+    
     constructor({
         // threejs核心库
         THREE,
         canvas
     }) {
-        window.threeController = this
+        // window.threeController = this
         this.THREE = THREE
         this.canvas = canvas
         this.camera = new PerspectiveCamera(75, this.canvas.width / this.canvas.height, 0.1, 1000);
@@ -117,7 +136,7 @@ export class ThreeController {
         this.resizeObserver.observe(document.body);
         this.renderer.setSize(canvas.width, canvas.height);
         this.renderer.shadowMap.enabled = true
-        this.camera.position.z = 11;
+        this.camera.position.z = this.cameraZ;
 
         this.render()
 
@@ -196,7 +215,7 @@ export class ThreeController {
         return new Color(Math.random() * 0xffffff);
     }
 
-    gltfCache = {}
+    private gltfCache = {}
 
     public useGltf(name, url) {
         if (this.gltfCache[name]) {
