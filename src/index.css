@@ -1,0 +1,5 @@
+
+canvas{
+    background: rgb(248,128,232);
+    background: radial-gradient(circle, rgba(248,128,232,1) 0%, rgba(204,22,217,1) 95%);
+}

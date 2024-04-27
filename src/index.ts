@@ -1,6 +1,6 @@
 import { ThreeController } from './threeController'
 import * as THREE from 'three'
-
+import './index.css'
 class CandyEngine {
 
   threeController
@@ -55,9 +55,9 @@ class CandyEngine {
         // 判断该模型是否有材质并且是否有这两个属性
         if ('material' in node && 'roughness' in node.material && 'metalness' in node.material) {
           // 设置粗糙度和金属感
-          node.material.roughness = .0;  // 可改为你需要的值，范围通常是0到1
+          node.material.roughness = .1;  // 可改为你需要的值，范围通常是0到1
           node.material.metalness = .2;  // 可改为你需要的值，范围通常是0到1
-          node.material.shininess = 100
+          node.material.shininess = 1
           // node.specular = new THREE.Color("rgb(255, 0, 0)"),
           node.material.color = new THREE.Color(0xff0000);
         }

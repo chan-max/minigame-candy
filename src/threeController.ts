@@ -80,7 +80,6 @@ export class ThreeController {
 
     fov = 75
 
-    cameraZ = 11
 
     // 宽高比
     get aspectRatio() {
@@ -118,7 +117,7 @@ export class ThreeController {
 
         this.camera = new THREE.OrthographicCamera(- this.width / 2, this.width / 2, this.height / 2, - this.height / 2, .1, 10000);
 
-        this.renderer = new WebGLRenderer({ canvas: canvas, antialias: true });
+        this.renderer = new WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
         this.scene = new Scene()
         this.scene
         this.resizeObserver = new ResizeObserver(
@@ -134,7 +133,7 @@ export class ThreeController {
         this.controller = new OrbitControls(this.camera, canvas);
         this.controller.enableDamping = true;
         this.controller.dampingFactor = 0.1; // 设置阻尼强度
-        
+
         this.resizeObserver.observe(document.body);
         this.renderer.setSize(canvas.width, canvas.height);
         this.renderer.shadowMap.enabled = true
@@ -145,9 +144,11 @@ export class ThreeController {
 
         this.render()
 
-        this.init()
+        this.initLight()
 
-        this.addPlaneBackground()
+        // this.addPlaneBackground()
+
+        this.addHiddenPlane()
 
         this.scene.add(new Mesh(new BoxGeometry(1, 1, 1), new MeshBasicMaterial({ color: 0xffffff })))
     }
@@ -177,18 +178,20 @@ export class ThreeController {
         object.position.z += object.position.z - center.z;
     }
 
-    async init() {
-        const ambientLight = new AmbientLight(0xffffff, 2.2); // 设置颜色和强度
-        this.scene.add(ambientLight);
+    async initLight() {
 
-        let light = new THREE.SpotLight(0xffffff, 200000); // 使用SpotLight
+        // const ambientLight = new AmbientLight(0xffffff, 2); // 设置颜色和强度
+        // this.scene.add(ambientLight);
+
+        let light = new THREE.SpotLight(0xffffff, 10000); // 使用SpotLight
         light.position.set(0, 0, this.width); //设置光源的位置
         light.castShadow = true; //允许光源产生阴影
 
-        let light2 = new THREE.SpotLight(0xffffff, 1000000); // 使用SpotLight
+        let light2 = new THREE.SpotLight(0xffffff, 100000); // 使用SpotLight
         light2.position.set(this.width, this.width, this.width); //设置光源的位置
         light2.castShadow = true; //允许光源产生阴影
 
+        
 
         let light3 = new THREE.SpotLight(0xffffff, 1000000); // 使用SpotLight
         light3.position.set(this.width, -this.width, this.width); //设置光源的位置
@@ -203,6 +206,14 @@ export class ThreeController {
         light5.position.set(-this.width, -this.width, this.width); //设置光源的位置
         light5.castShadow = true; //允许光源产生阴影
 
+        let light6 = new THREE.SpotLight(0xffffff, 1000000); // 使用SpotLight
+        light6.position.set(-this.width * 2, -this.width *2 , this.width * 2); //设置光源的位置
+        light6.castShadow = true; //允许光源产生阴影
+
+        let light7 = new THREE.SpotLight(0xffffff, 1000000); // 使用SpotLight
+        light7.position.set(this.width * 2, this.width *2 , this.width * 2); //设置光源的位置
+        light7.castShadow = true; //允许光源产生阴影
+        
         //设置光源产生阴影的一些参数，可以根据场景需要进行调整
 
         this.scene.add(light);
@@ -210,7 +221,10 @@ export class ThreeController {
         this.scene.add(light3);
         this.scene.add(light4);
         this.scene.add(light5);
+        this.scene.add(light6);
     }
+
+
 
     render() {
         requestAnimationFrame(this.render.bind(this));
@@ -249,6 +263,17 @@ export class ThreeController {
 
     public loadTexture = loadTexture
 
+    addHiddenPlane() {
+        var planeGeometry = new THREE.PlaneGeometry(this.width, this.height);
+        var planeMaterial = new THREE.ShadowMaterial();
+        planeMaterial.opacity = 0.0; // 透明度设为0使平面不可见
+
+        var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.position.z = -100;
+        plane.receiveShadow = true;
+        this.scene.add(plane);
+    }
+
     addPlaneBackground() {
         var canvas = document.createElement('canvas');
         canvas.width = this.width
@@ -258,7 +283,7 @@ export class ThreeController {
         var gradient = ctx.createRadialGradient(this.width / 2, this.height / 2, 60, this.width / 2, this.height / 2, Math.max(this.width, this.height) / 2);
         // 设定颜色渐变
         gradient.addColorStop(0, 'hsl(295,91%,50%)');
-        gradient.addColorStop(1, 'hsl(295,91%,30%)');
+        gradient.addColorStop(1, 'hsl(295,91%,14%)');
 
         // 应用渐变到整个 canvas
         ctx.fillStyle = gradient;
