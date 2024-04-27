@@ -27,10 +27,10 @@ import {
     MeshStandardMaterial
 } from "three";
 import * as THREE from 'three'
-
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-
+import { Helper } from "./base";
 
 
 export function loadGltf(url) {
@@ -60,7 +60,7 @@ export function loadTexture(url) {
 
 
 
-export class ThreeController {
+export class ThreeController extends Helper {
     // three
     THREE = null
     // 场景
@@ -110,47 +110,53 @@ export class ThreeController {
         THREE,
         canvas
     }) {
+        super()
         // window.threeController = this
         this.THREE = THREE
         this.canvas = canvas
         // this.camera = new PerspectiveCamera(75, this.canvas.width / this.canvas.height, 0.1, 1000);
-
-        this.camera = new THREE.OrthographicCamera(- this.width / 2, this.width / 2, this.height / 2, - this.height / 2, .1, 10000);
-
         this.renderer = new WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
         this.scene = new Scene()
-        this.scene
-        this.resizeObserver = new ResizeObserver(
-            () => {
-                this.canvas.width = document.body.clientWidth;
-                this.canvas.height = document.body.clientHeight;
-                this.camera.aspect = this.canvas.width / this.canvas.height;
-                this.camera.updateProjectionMatrix();
-                this.renderer.setSize(this.canvas.width, this.canvas.height);
-            }
-        );
+        this.initView()
 
-        this.controller = new OrbitControls(this.camera, canvas);
-        this.controller.enableDamping = true;
-        this.controller.dampingFactor = 0.1; // 设置阻尼强度
-
-        this.resizeObserver.observe(document.body);
-        this.renderer.setSize(canvas.width, canvas.height);
-        this.renderer.shadowMap.enabled = true
-
-
-        this.camera.lookAt(0, 0, 0);
-        this.camera.position.set(0, 0, this.width)
+        // this.controller = new OrbitControls(this.camera, canvas);
+        // this.controller.enableDamping = true;
+        // this.controller.dampingFactor = 0.1; // 设置阻尼强度
 
         this.render()
 
         this.initLight()
 
+        this.initEvent()
         // this.addPlaneBackground()
+        // this.initHdr()
 
-        this.addHiddenPlane()
+        document.body.onload = () => {
+            this.resizeObserver = new ResizeObserver(() => {
+                this.$dispatch('update')
+                this.initView()
+            });
+            this.resizeObserver.observe(document.body);
+        }
+    }
 
-        this.scene.add(new Mesh(new BoxGeometry(1, 1, 1), new MeshBasicMaterial({ color: 0xffffff })))
+    // 清空当前场景
+    clearScene() {
+        while (this.scene.children.length > 0) {
+            this.scene.remove(this.scene.children[0]);
+        }
+    }
+
+    initView() {
+        this.canvas.width = document.body.clientWidth;
+        this.canvas.height = document.body.clientHeight;
+        this.renderer.setSize(this.canvas.width, this.canvas.height);
+        this.renderer.shadowMap.enabled = true
+        this.camera = new THREE.OrthographicCamera(- this.ruleWidth / 2, this.ruleWidth / 2, this.ruleHeight / 2, - this.ruleHeight / 2, .1, 10000);
+        this.camera.aspect = this.canvas.width / this.canvas.height;
+        this.camera.updateProjectionMatrix();
+        this.camera.lookAt(0, 0, 0);
+        this.camera.position.set(0, 0, 1)
     }
 
     setBgColor(color, alpha = 1) {
@@ -180,48 +186,23 @@ export class ThreeController {
 
     async initLight() {
 
-        // const ambientLight = new AmbientLight(0xffffff, 2); // 设置颜色和强度
-        // this.scene.add(ambientLight);
+        const ambientLight = new AmbientLight(0xffffff, 2); // 设置颜色和强度
+        this.scene.add(ambientLight);
 
-        let light = new THREE.SpotLight(0xffffff, 10000); // 使用SpotLight
-        light.position.set(0, 0, this.width); //设置光源的位置
+        const level = 100
+
+        let light = new THREE.SpotLight(0xffffff, 100); // 使用SpotLight
+        light.position.set(0, 0, level); //设置光源的位置
         light.castShadow = true; //允许光源产生阴影
 
         let light2 = new THREE.SpotLight(0xffffff, 100000); // 使用SpotLight
-        light2.position.set(this.width, this.width, this.width); //设置光源的位置
+        light2.position.set(level, level, level); //设置光源的位置
         light2.castShadow = true; //允许光源产生阴影
 
-        
-
-        let light3 = new THREE.SpotLight(0xffffff, 1000000); // 使用SpotLight
-        light3.position.set(this.width, -this.width, this.width); //设置光源的位置
-        light3.castShadow = true; //允许光源产生阴影
-
-
-        let light4 = new THREE.SpotLight(0xffffff, 1000000); // 使用SpotLight
-        light4.position.set(-this.width, this.width, this.width); //设置光源的位置
-        light4.castShadow = true; //允许光源产生阴影
-
-        let light5 = new THREE.SpotLight(0xffffff, 1000000); // 使用SpotLight
-        light5.position.set(-this.width, -this.width, this.width); //设置光源的位置
-        light5.castShadow = true; //允许光源产生阴影
-
-        let light6 = new THREE.SpotLight(0xffffff, 1000000); // 使用SpotLight
-        light6.position.set(-this.width * 2, -this.width *2 , this.width * 2); //设置光源的位置
-        light6.castShadow = true; //允许光源产生阴影
-
-        let light7 = new THREE.SpotLight(0xffffff, 1000000); // 使用SpotLight
-        light7.position.set(this.width * 2, this.width *2 , this.width * 2); //设置光源的位置
-        light7.castShadow = true; //允许光源产生阴影
-        
-        //设置光源产生阴影的一些参数，可以根据场景需要进行调整
 
         this.scene.add(light);
         this.scene.add(light2);
-        this.scene.add(light3);
-        this.scene.add(light4);
-        this.scene.add(light5);
-        this.scene.add(light6);
+
     }
 
 
@@ -238,6 +219,7 @@ export class ThreeController {
 
     private gltfCache = {}
 
+    // gltf 加载带缓存
     public useGltf(name, url) {
         if (this.gltfCache[name]) {
 
@@ -263,16 +245,6 @@ export class ThreeController {
 
     public loadTexture = loadTexture
 
-    addHiddenPlane() {
-        var planeGeometry = new THREE.PlaneGeometry(this.width, this.height);
-        var planeMaterial = new THREE.ShadowMaterial();
-        planeMaterial.opacity = 0.0; // 透明度设为0使平面不可见
-
-        var plane = new THREE.Mesh(planeGeometry, planeMaterial);
-        plane.position.z = -100;
-        plane.receiveShadow = true;
-        this.scene.add(plane);
-    }
 
     addPlaneBackground() {
         var canvas = document.createElement('canvas');
@@ -301,8 +273,102 @@ export class ThreeController {
 
         var mesh = new Mesh(geometry, material);
         mesh.receiveShadow = true;
-        mesh.position.set(0, 0, -50)
+        mesh.position.set(0, 0, -100)
         this.scene.add(mesh);
+    }
+
+    initHdr() {
+    }
+
+
+
+
+    initEvent() {
+        const onPointerClick = (event) => {
+            event.preventDefault();
+            let raycaster = new THREE.Raycaster();
+            let mouse = new THREE.Vector2();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, this.camera);
+
+            var intersects = raycaster.intersectObjects(this.scene.children, true);
+
+            if (intersects.length > 0) {
+                console.log(intersects[0]);
+            }
+
+        }
+        window.addEventListener('click', onPointerClick, false);
+
+        /* 点击滑动事件 */
+
+        let startPoint = new THREE.Vector2();
+        let endPoint = new THREE.Vector2();
+        window.addEventListener('pointerdown', onPointerDown, false);
+        window.addEventListener('pointerup', onPointerUp, false);
+
+        function onPointerDown(event) {
+            // 当按下鼠标或开始触摸时，记录初始位置
+            window.addEventListener('pointermove', onPointerMove, false);
+            startPoint.set(event.clientX, event.clientY);
+        }
+
+        function onPointerMove(event) {
+            // 当鼠标或手指移动时，记录当前位置
+            endPoint.set(event.clientX, event.clientY);
+        }
+
+        function onPointerUp(event) {
+            // 当鼠标松开或触摸结束时，判断移动的方向
+            window.removeEventListener('pointermove', onPointerMove, false);
+            let direction = getSwipeDirection(startPoint, endPoint);
+            switch (direction) {
+                case "up":
+                    //向上滑动
+                    console.log('up')
+                    break;
+                case "down":
+                    console.log('down')
+                    //向下滑动
+                    break;
+                case "left":
+                    console.log('left')
+                    //向左滑动
+                    break;
+                case "right":
+                    //向右滑动
+                    console.log('right')
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // 判断滑动方向的函数
+        function getSwipeDirection(startPoint, endPoint) {
+            let dy = startPoint.y - endPoint.y;
+            let dx = startPoint.x - endPoint.x;
+
+            // 忽略半径 , 小于会被忽略
+            let ignoreRadius = 20
+
+            if (dy < ignoreRadius && dx < ignoreRadius) {
+                return
+            }
+
+            let result = "";
+
+            if (Math.abs(dx) > Math.abs(dy)) {
+                //判断为横向滑动
+                result = dx > 0 ? "left" : "right";
+            } else {
+                //判断为纵向滑动
+                result = dy > 0 ? "up" : "down";
+            }
+            return result;
+        }
     }
 }
 

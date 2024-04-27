@@ -1,8 +1,17 @@
 import { ThreeController } from './threeController'
 import * as THREE from 'three'
 import './index.css'
+import {
+  CandyJarContructor,
+  BananaCandyContructor,
+  HardCandyContructor,
+  CubeCandyContructor,
+  SphereCandyContructor
+} from './elements/index'
+
 class CandyEngine {
 
+  // 3d 控制器
   threeController
 
   constructor({
@@ -12,61 +21,88 @@ class CandyEngine {
     this.threeController = new ThreeController({
       THREE,
       canvas
-    })
+    });
 
+    (window as any).candyEngine = this
+    this.init()
+    this.threeController.$on('update', this.init.bind(this))
+  }
+
+  async init() {
+    
+    this.clearChessBorard()
     this.initChessBoard()
   }
 
 
+  // 所有的糖果元素类型
+  candyConstructors: any = {
+    // HardCandyContructor,
+    BananaCandyContructor,
+    SphereCandyContructor
+    // CubeCandyContructor
+  }
+
+  // 清空当前棋盘
+  clearChessBorard() {
+    this.elementGrid = []
+    this.elementSet.forEach((el) => {
+      this.threeController.scene.remove(el.target)
+    })
+    this.elementSet = []
+  }
+
+  // 存储当前元素的网格 , 坐标从右下开始，
+  elementGrid: any[][] = []
+
+  // 当前所有元素的平铺集合
+  elementSet:any = []
 
   // 初始化棋盘
   async initChessBoard() {
+
     // 支持定于简单的行和列 , 和二维甚至三维数组的形式
-    let row = 9
     let column = 9
+    let row = 9
 
-    for (let i = 0; i < row; i++) {
-      for (let j = 0; j < column; j++) {
+    for (let i = 0; i < column; i++) {
+      for (let j = 0; j < row; j++) {
 
-        let element = await this.getElement()
+        let element = await this.getRandomCandyElement()
 
         /* 设置每个元素的位置和大小 */
-        let padding = 20
+        let paddingPervent = 10
 
-        let width = (this.threeController.width - padding) / Math.max(column, row) * 1
+        let width = (this.threeController.ruleWidth * (1 - paddingPervent / 100)) / Math.max(row, column) * 1
 
-        this.threeController.initModelPosition(element, width * 1.2)  // 大于1 看起来更饱满
+        this.threeController.initModelPosition(element.target, width * 1.3)  // 大于1 看起来更饱满
 
-        element.position.x = i * width + width / 2 - width * row / 2
-        element.position.y = j * width + width / 2 - width * column / 2
-        this.threeController.scene.add(element)
+        element.target.position.x = i * width + width / 2 - width * column / 2
+        element.target.position.y = j * width + width / 2 - width * row / 2
+        this.threeController.scene.add(element.target)
+
+
+        this.elementGrid[j] || (this.elementGrid[j] = [])
+
+        this.elementGrid[j][i] = element
+
+        this.elementSet.push(element)
+
       }
     }
   }
 
   // 获取棋盘的元素
-  async getElement() {
-    // return Promise.resolve(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 0xff0000 })))
+  async getRandomCandyElement() {
+    const keys = Object.keys(this.candyConstructors);
+    const randomKey = keys[Math.floor(Math.random() * keys.length)];
 
-    let gltf = await this.threeController.useGltf('candy1', '/assets/models/candy2.glb')
-    gltf.scene.traverse((node) => {
-      if (node.isMesh) {
-        node.castShadow = true;
-        // 判断该模型是否有材质并且是否有这两个属性
-        if ('material' in node && 'roughness' in node.material && 'metalness' in node.material) {
-          // 设置粗糙度和金属感
-          node.material.roughness = .0;  // 可改为你需要的值，范围通常是0到1
-          node.material.metalness = .3;  // 可改为你需要的值，范围通常是0到1
-          node.material.shininess = 100
-          // node.specular = new THREE.Color("rgb(255, 0, 0)"),
-          node.material.color = new THREE.Color(0xffffff);
-        }
-      }
-    });
+    const instance = await new this.candyConstructors[randomKey]({
+      threeController: this.threeController
+    }).init()
 
-    return gltf.scene
+    return instance
   }
-
 }
 
 
