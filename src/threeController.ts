@@ -83,7 +83,7 @@ export class ThreeController {
     cameraZ = 11
 
     // 宽高比
-    get aspectRatio(){
+    get aspectRatio() {
         return this.width / this.height
     }
 
@@ -97,15 +97,15 @@ export class ThreeController {
         return this.canvas.clientHeight
     }
 
-    get h(){
-        return 2 * Math.tan( (this.fov / 2) * Math.PI / 180 ) * this.cameraZ;
+
+    get ruleWidth() {
+        return 1
     }
 
-    get w(){
-       return this.h * this.aspectRatio;
+    get ruleHeight() {
+        return this.ruleWidth / this.aspectRatio
     }
 
-    
     constructor({
         // threejs核心库
         THREE,
@@ -114,9 +114,10 @@ export class ThreeController {
         // window.threeController = this
         this.THREE = THREE
         this.canvas = canvas
-        this.camera = new PerspectiveCamera(75, this.canvas.width / this.canvas.height, 0.1, 1000);
-        this.camera.lookAt(0, 0, 0);
-        this.camera.position.set(0, 0, 1)
+        // this.camera = new PerspectiveCamera(75, this.canvas.width / this.canvas.height, 0.1, 1000);
+
+        this.camera = new THREE.OrthographicCamera(- this.width / 2, this.width / 2, this.height / 2, - this.height / 2, .1, 10000);
+
         this.renderer = new WebGLRenderer({ canvas: canvas, antialias: true });
         this.scene = new Scene()
         this.scene
@@ -133,16 +134,22 @@ export class ThreeController {
         this.controller = new OrbitControls(this.camera, canvas);
         this.controller.enableDamping = true;
         this.controller.dampingFactor = 0.1; // 设置阻尼强度
+        
         this.resizeObserver.observe(document.body);
         this.renderer.setSize(canvas.width, canvas.height);
         this.renderer.shadowMap.enabled = true
-        this.camera.position.z = this.cameraZ;
+
+
+        this.camera.lookAt(0, 0, 0);
+        this.camera.position.set(0, 0, this.width)
 
         this.render()
 
         this.init()
 
         this.addPlaneBackground()
+
+        this.scene.add(new Mesh(new BoxGeometry(1, 1, 1), new MeshBasicMaterial({ color: 0xffffff })))
     }
 
     setBgColor(color, alpha = 1) {
@@ -174,35 +181,35 @@ export class ThreeController {
         const ambientLight = new AmbientLight(0xffffff, 2.2); // 设置颜色和强度
         this.scene.add(ambientLight);
 
-        let light = new THREE.SpotLight( 0xffffff, 120 ); // 使用SpotLight
-        light.position.set(0,0,10); //设置光源的位置
+        let light = new THREE.SpotLight(0xffffff, 200000); // 使用SpotLight
+        light.position.set(0, 0, this.width); //设置光源的位置
         light.castShadow = true; //允许光源产生阴影
 
-        let light2 = new THREE.SpotLight( 0xffffff, 200 ); // 使用SpotLight
-        light2.position.set(10,10,10); //设置光源的位置
+        let light2 = new THREE.SpotLight(0xffffff, 1000000); // 使用SpotLight
+        light2.position.set(this.width, this.width, this.width); //设置光源的位置
         light2.castShadow = true; //允许光源产生阴影
 
 
-        let light3 = new THREE.SpotLight( 0xffffff, 200 ); // 使用SpotLight
-        light3.position.set(10,-10,10); //设置光源的位置
+        let light3 = new THREE.SpotLight(0xffffff, 1000000); // 使用SpotLight
+        light3.position.set(this.width, -this.width, this.width); //设置光源的位置
         light3.castShadow = true; //允许光源产生阴影
 
 
-        let light4 = new THREE.SpotLight( 0xffffff, 200 ); // 使用SpotLight
-        light4.position.set(-10,10,10); //设置光源的位置
+        let light4 = new THREE.SpotLight(0xffffff, 1000000); // 使用SpotLight
+        light4.position.set(-this.width, this.width, this.width); //设置光源的位置
         light4.castShadow = true; //允许光源产生阴影
-    
-        let light5 = new THREE.SpotLight( 0xffffff, 200 ); // 使用SpotLight
-        light5.position.set(-10,-10,10); //设置光源的位置
+
+        let light5 = new THREE.SpotLight(0xffffff, 1000000); // 使用SpotLight
+        light5.position.set(-this.width, -this.width, this.width); //设置光源的位置
         light5.castShadow = true; //允许光源产生阴影
 
         //设置光源产生阴影的一些参数，可以根据场景需要进行调整
-        
-        this.scene.add( light );
-        this.scene.add( light2 );
-        this.scene.add( light3 );
-        this.scene.add( light4 );
-        this.scene.add( light5 );
+
+        this.scene.add(light);
+        this.scene.add(light2);
+        this.scene.add(light3);
+        this.scene.add(light4);
+        this.scene.add(light5);
     }
 
     render() {
@@ -234,16 +241,15 @@ export class ThreeController {
                 this.gltfCache[name] = gltf
 
                 // 第一个也会生成克隆的模型
-                let returnGltf = await this.useGltf(name,url)
+                let returnGltf = await this.useGltf(name, url)
                 resolve(returnGltf)
             })
         }
     }
 
-    loadTexture = loadTexture
+    public loadTexture = loadTexture
 
     addPlaneBackground() {
-        var aspectRatio = this.width / this.height;
         var canvas = document.createElement('canvas');
         canvas.width = this.width
         canvas.height = this.height
@@ -258,9 +264,7 @@ export class ThreeController {
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, this.width, this.height);
 
-        let rule = 13
-
-        var geometry = new PlaneGeometry(rule, rule / aspectRatio);
+        var geometry = new PlaneGeometry(this.width, this.height);
 
         var shadowTexture = new Texture(canvas);
         shadowTexture.needsUpdate = true;
@@ -272,7 +276,7 @@ export class ThreeController {
 
         var mesh = new Mesh(geometry, material);
         mesh.receiveShadow = true;
-        mesh.position.set(0, 0, -3)
+        mesh.position.set(0, 0, -50)
         this.scene.add(mesh);
     }
 }

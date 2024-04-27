@@ -1,4 +1,4 @@
-import { ThreeController } from './src/utils/threeController'
+import { ThreeController } from './threeController'
 import * as THREE from 'three'
 
 class CandyEngine {
@@ -28,14 +28,12 @@ class CandyEngine {
     for (let i = 0; i < row; i++) {
       for (let j = 0; j < column; j++) {
 
-        // let model = new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:0xff0000}))
-
         let element = await this.getElement()
 
         /* 设置每个元素的位置和大小 */
-        let padding = 1
+        let padding = 20
 
-        let width = (this.threeController.w - padding) / Math.max(column, row) * 1
+        let width = (this.threeController.width - padding) / Math.max(column, row) * 1
 
         this.threeController.initModelPosition(element, width * 1.2)  // 大于1 看起来更饱满
 
@@ -50,7 +48,7 @@ class CandyEngine {
   async getElement() {
     // return Promise.resolve(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 0xff0000 })))
 
-    let gltf = await this.threeController.useGltf('candy1', 'src/assets/models/candy2.glb')
+    let gltf = await this.threeController.useGltf('candy1', '/assets/models/candy2.glb')
     gltf.scene.traverse((node) => {
       if (node.isMesh) {
         node.castShadow = true;

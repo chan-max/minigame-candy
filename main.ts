@@ -1,5 +1,5 @@
 import * as  THREE from 'three'
-import { createGame } from './index'
+import { createGame } from './src/index'
 import VConsole from 'vconsole'
 
 new VConsole({
