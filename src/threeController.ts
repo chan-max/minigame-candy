@@ -31,7 +31,7 @@ import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { Helper } from "./base";
-
+import { ThreeEvnets } from './base'
 
 export function loadGltf(url) {
     let loader = new GLTFLoader();
@@ -58,7 +58,12 @@ export function loadTexture(url) {
     })
 }
 
-
+export enum Directions {
+    UP = 'up',
+    BOTTOM = 'bottom',
+    LEFT = 'left',
+    RIGHT = 'right',
+}
 
 export class ThreeController extends Helper {
     // three
@@ -170,7 +175,7 @@ export class ThreeController extends Helper {
     setRadialGradientBackground() {
     }
 
-    initModelPosition(object, scale = 1) {
+    initModelSize(object, scale = 1) {
         // 先处理尺寸，再居中
         const sizeBox = new Box3().setFromObject(object);
         let size = new Vector3();
@@ -280,82 +285,92 @@ export class ThreeController extends Helper {
     initHdr() {
     }
 
-
-
-
     initEvent() {
         const onPointerClick = (event) => {
             event.preventDefault();
+            this.$dispatch(ThreeEvnets.CLICK)
             let raycaster = new THREE.Raycaster();
             let mouse = new THREE.Vector2();
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            mouse.x = (event.clientX / this.canvas.clientWidth) * 2 - 1;
+            mouse.y = - (event.clientY / this.canvas.clientHeight) * 2 + 1;
 
             raycaster.setFromCamera(mouse, this.camera);
 
             var intersects = raycaster.intersectObjects(this.scene.children, true);
 
             if (intersects.length > 0) {
-                console.log(intersects[0]);
             }
 
         }
-        window.addEventListener('click', onPointerClick, false);
+        this.canvas.addEventListener('click', onPointerClick, false);
 
         /* 点击滑动事件 */
-
         let startPoint = new THREE.Vector2();
         let endPoint = new THREE.Vector2();
-        window.addEventListener('pointerdown', onPointerDown, false);
-        window.addEventListener('pointerup', onPointerUp, false);
+        // 事件开始是否从网格元素开始 , 记录起始元素
+        var isStartFromMesh = false
+        var startMesh: any = null
 
-        function onPointerDown(event) {
-            // 当按下鼠标或开始触摸时，记录初始位置
-            window.addEventListener('pointermove', onPointerMove, false);
+        const onPointerDown = (event) => {
+            // 
+
+            let raycaster = new THREE.Raycaster();
+            let mouse = new THREE.Vector2();
+
+            mouse.x = (event.clientX / this.canvas.clientWidth) * 2 - 1;
+            mouse.y = - (event.clientY / this.canvas.clientHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, this.camera);
+
+            var intersects = raycaster.intersectObjects(this.scene.children, true);
+
+            if (intersects.length > 0) {
+                isStartFromMesh = true
+                startMesh = intersects[0].object
+            }
+
+
             startPoint.set(event.clientX, event.clientY);
+            this.canvas.addEventListener('pointermove', onPointerMove, false);
         }
 
-        function onPointerMove(event) {
+        const onPointerMove = (event) => {
             // 当鼠标或手指移动时，记录当前位置
             endPoint.set(event.clientX, event.clientY);
         }
 
-        function onPointerUp(event) {
+        const onPointerUp = (event) => {
             // 当鼠标松开或触摸结束时，判断移动的方向
-            window.removeEventListener('pointermove', onPointerMove, false);
+
+            this.canvas.removeEventListener('pointermove', onPointerMove, false);
             let direction = getSwipeDirection(startPoint, endPoint);
-            switch (direction) {
-                case "up":
-                    //向上滑动
-                    console.log('up')
-                    break;
-                case "down":
-                    console.log('down')
-                    //向下滑动
-                    break;
-                case "left":
-                    console.log('left')
-                    //向左滑动
-                    break;
-                case "right":
-                    //向右滑动
-                    console.log('right')
-                    break;
-                default:
-                    break;
+
+            if (direction) {
+                this.$dispatch(ThreeEvnets.SWIPE)
+                if (isStartFromMesh) {
+                    this.$dispatch(ThreeEvnets.MESH_SWIPE, startMesh, direction)
+                }
             }
+
+            startMesh = null
+            isStartFromMesh = false
         }
 
+
+        this.canvas.addEventListener('pointerdown', onPointerDown, false);
+        this.canvas.addEventListener('pointerup', onPointerUp, false);
+
         // 判断滑动方向的函数
-        function getSwipeDirection(startPoint, endPoint) {
+        const getSwipeDirection = (startPoint, endPoint) => {
             let dy = startPoint.y - endPoint.y;
             let dx = startPoint.x - endPoint.x;
 
             // 忽略半径 , 小于会被忽略
-            let ignoreRadius = 20
+            let ignoreRadius = 5
 
-            if (dy < ignoreRadius && dx < ignoreRadius) {
-                return
+            if (Math.abs(dy) < ignoreRadius && Math.abs(dx) < ignoreRadius) {
+                return ''
             }
 
             let result = "";
@@ -367,6 +382,7 @@ export class ThreeController extends Helper {
                 //判断为纵向滑动
                 result = dy > 0 ? "up" : "down";
             }
+
             return result;
         }
     }

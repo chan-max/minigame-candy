@@ -5,13 +5,20 @@ import * as THREE from 'three'
 
 export class CandyConstructor {
 
+    size
+
     gltf
 
     threeController
 
     target
 
-    constructor({ threeController }) {
+
+    xIndex
+
+    yIndex
+
+    constructor({ threeController,size }) {
         this.threeController = threeController
     }
 
@@ -72,10 +79,16 @@ export class BananaCandyContructor extends CandyConstructor {
         this.init()
     }
 
+    scale = 2.5
+
     async init() {
         let gltf = await this.threeController.useGltf('bananaCandy', '/assets/models/candy2.glb')
+
         gltf.scene.traverse((node) => {
             if (node.isMesh) {
+                if (!this.target) {
+                    this.target = node
+                }
                 node.castShadow = true;
                 // 判断该模型是否有材质并且是否有这两个属性
                 if ('material' in node && 'roughness' in node.material && 'metalness' in node.material) {
@@ -86,8 +99,6 @@ export class BananaCandyContructor extends CandyConstructor {
                 }
             }
         });
-
-        this.target = gltf.scene
         return this
     }
 }

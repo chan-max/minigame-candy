@@ -8,6 +8,8 @@ import {
   CubeCandyContructor,
   SphereCandyContructor
 } from './elements/index'
+import { ThreeEvnets } from './base'
+import { Directions } from './threeController'
 
 class CandyEngine {
 
@@ -25,13 +27,19 @@ class CandyEngine {
 
     (window as any).candyEngine = this
     this.init()
-    this.threeController.$on('update', this.init.bind(this))
   }
 
   async init() {
-    
+    //
+    const engine = this
     this.clearChessBorard()
     this.initChessBoard()
+
+    this.threeController.$on(ThreeEvnets.MESH_SWIPE, (mesh, direction) => {
+      console.log('滑动了元素')
+
+      console.log(mesh._instance.xIndex,mesh._instance.yIndex)
+    })
   }
 
 
@@ -53,52 +61,68 @@ class CandyEngine {
   }
 
   // 存储当前元素的网格 , 坐标从右下开始，
+  /*
+    [
+      [],
+      [(0,1),(1,1),()],
+      [(0,0),(1,0)]
+    ]
+  */
   elementGrid: any[][] = []
 
   // 当前所有元素的平铺集合
-  elementSet:any = []
+  elementSet: any = []
 
   // 初始化棋盘
   async initChessBoard() {
 
     // 支持定于简单的行和列 , 和二维甚至三维数组的形式
-    let column = 9
-    let row = 9
+    let columns = 4
+    let rows = 2
 
-    for (let i = 0; i < column; i++) {
-      for (let j = 0; j < row; j++) {
+    for (let column = 0; column < columns; column++) {
+      for (let row = 0; row < rows; row++) {
 
-        let element = await this.getRandomCandyElement()
 
         /* 设置每个元素的位置和大小 */
         let paddingPervent = 10
 
-        let width = (this.threeController.ruleWidth * (1 - paddingPervent / 100)) / Math.max(row, column) * 1
+        let size = (this.threeController.ruleWidth * (1 - paddingPervent / 100)) / Math.max(rows, columns) * 1
 
-        this.threeController.initModelPosition(element.target, width * 1.3)  // 大于1 看起来更饱满
 
-        element.target.position.x = i * width + width / 2 - width * column / 2
-        element.target.position.y = j * width + width / 2 - width * row / 2
+
+        let element = await this.getRandomCandyElement({size})
+
+        this.threeController.initModelSize(element.target,size * (element.scale || 1.3 ))
+
+        element.target.position.x = column * size + size / 2 - size * columns / 2
+        element.target.position.y = row * size + size / 2 - size * rows / 2
+
+        // 在网格上保存当前实例
+        element.target._instance = element
+
+        element.xIndex = column
+        element.yIndex = row
+
         this.threeController.scene.add(element.target)
 
+        this.elementGrid[column] || (this.elementGrid[column] = [])
 
-        this.elementGrid[j] || (this.elementGrid[j] = [])
-
-        this.elementGrid[j][i] = element
+        this.elementGrid[column][row] = element
 
         this.elementSet.push(element)
-
       }
     }
   }
 
   // 获取棋盘的元素
-  async getRandomCandyElement() {
+  async getRandomCandyElement({size}) {
     const keys = Object.keys(this.candyConstructors);
     const randomKey = keys[Math.floor(Math.random() * keys.length)];
 
     const instance = await new this.candyConstructors[randomKey]({
-      threeController: this.threeController
+      threeController: this.threeController,
+      size
     }).init()
 
     return instance
