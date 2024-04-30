@@ -11,4 +11,7 @@ export default defineConfig({
         }),
         qrcode()
     ],
+    server:{
+        host:'0.0.0.0'
+    }
 })
