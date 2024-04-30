@@ -214,7 +214,7 @@ export class ThreeController extends Helper {
         directionalLight.position.set(0, 0, this.ruleWidth); // 设置光源的位置，光源将从该位置照射下来
 
         var directionalLight2 = new THREE.DirectionalLight(0xffffff, 5); // 创建一个新的方向光源，颜色为白色，强度为0.5
-        directionalLight2.position.set(this.ruleWidth * .01, this.ruleWidth * .01, this.ruleWidth * 4); // 设置光源的位置，光源将从该位置照射下来
+        directionalLight2.position.set(this.ruleWidth * .02, this.ruleWidth * .02, this.ruleWidth); // 设置光源的位置，光源将从该位置照射下来
         directionalLight2.castShadow = true
         directionalLight2.shadow.mapSize.set(10240, 10240);
 
@@ -290,7 +290,7 @@ export class ThreeController extends Helper {
         });
 
         var mesh = new Mesh(geometry, material);
-        mesh.receiveShadow = true;
+        // mesh.receiveShadow = true;
         mesh.position.set(0, 0, -1)
         this.scene.add(mesh);
     }
