@@ -102,6 +102,8 @@ export class ThreeController extends Helper {
     }
 
 
+
+    // 假定的横向高度 
     get ruleWidth() {
         return 1
     }
@@ -118,48 +120,42 @@ export class ThreeController extends Helper {
         super()
         this.THREE = THREE
         this.canvas = canvas
-
         this.init()
+    }
+
+    init() {
+        this.renderer = new WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: true });
+        // 增加分辨率 
+        this.renderer.setPixelRatio(window.devicePixelRatio)
+        this.renderer.shadowMap.enabled = true
+        this.scene = new Scene()
 
         this.initView()
 
-        this.render()
-
         this.initLight()
 
-        // this.initEvent()
+        this.initEvent()
 
         this.addShadowPlane()
 
         this.addPlaneBackground()
 
-        // document.body.onload = () => {
-        //     this.resizeObserver = new ResizeObserver(() => {
-        //         this.$dispatch('update')
-        //         this.initView()
-        //     });
-        //     this.resizeObserver.observe(document.body);
-        // }
+        this.initCamera()
 
+        this.initHdr()
 
-        this.initController()
-    }
+        this.render()
 
-    initController(){
-        this.controller = new OrbitControls(this.camera, this.canvas);
-        this.controller.enableDamping = true;
-        this.controller.dampingFactor = 0.1; // 设置阻尼强度
-    }
+        // this.initController()
 
-    init() {
-        // window.threeController = this
-
-        // this.camera = new PerspectiveCamera(75, this.canvas.width / this.canvas.height, 0.1, 1000);
-        this.renderer = new WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: true });
-
-        // 增加分辨率
-        this.renderer.setPixelRatio(window.devicePixelRatio)
-        this.scene = new Scene()
+        document.body.onload = () => {
+            this.resizeObserver = new ResizeObserver(() => {
+                this.$dispatch(ThreeEvnets.CANVAS_RESIZE)
+                this.initView()
+                this.updateCamera()
+            });
+            this.resizeObserver.observe(document.body)
+        };
     }
 
     // 清空当前场景
@@ -169,17 +165,39 @@ export class ThreeController extends Helper {
         }
     }
 
-    initView() {
-        this.canvas.width = document.body.clientWidth;
-        this.canvas.height = document.body.clientHeight;
-        this.renderer.setSize(this.canvas.width, this.canvas.height);
-        this.renderer.shadowMap.enabled = true
+    initController() {
+        this.controller = new OrbitControls(this.camera, this.canvas);
+        this.controller.enableDamping = true;
+        this.controller.dampingFactor = 0.1; // 设置阻尼强度
+    }
+
+
+    updateCamera() {
+        this.camera.aspect = this.aspectRatio;
+        this.camera.left = - this.ruleWidth / 2
+        this.camera.right = this.ruleWidth / 2
+        this.camera.top = this.ruleHeight / 2
+        this.camera.bottom = - this.ruleHeight / 2
+        this.camera.near = .1
+        this.camera.far = 10000
+        this.camera.updateProjectionMatrix();
+    }
+    
+    initCamera() {
         this.camera = new THREE.OrthographicCamera(- this.ruleWidth / 2, this.ruleWidth / 2, this.ruleHeight / 2, - this.ruleHeight / 2, .1, 10000);
-        this.camera.aspect = this.canvas.width / this.canvas.height;
+        this.camera.aspect = this.aspectRatio;
         this.camera.updateProjectionMatrix();
         this.camera.lookAt(0, 0, 0);
         this.camera.position.set(0, 0, this.ruleWidth)
     }
+
+    initView() {
+        this.canvas.width = document.body.clientWidth;
+        this.canvas.height = document.body.clientHeight;
+        this.renderer.setSize(this.canvas.width, this.canvas.height);
+    }
+
+
 
     setBgColor(color, alpha = 1) {
         this.renderer.setClearColor(color, alpha);
@@ -268,8 +286,8 @@ export class ThreeController extends Helper {
         var canvas = document.createElement('canvas');
         canvas.width = this.ruleWidth
         canvas.height = this.ruleHeight
+
         var ctx: any = canvas.getContext('2d');
-        document.body.appendChild(canvas);
         var gradient = ctx.createRadialGradient(this.ruleWidth / 2, this.ruleHeight / 2, 60, this.ruleWidth / 2, this.ruleHeight / 2, Math.max(this.ruleWidth, this.ruleHeight) / 2);
         // 设定颜色渐变
         gradient.addColorStop(0, 'hsl(295,91%,50%)');
@@ -295,7 +313,16 @@ export class ThreeController extends Helper {
         this.scene.add(mesh);
     }
 
+
+
     initHdr() {
+        const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
+        const hdriLoader = new RGBELoader()
+        hdriLoader.load('/assets/env.hdr', (texture) => {
+            const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+            texture.dispose();
+            this.scene.environment = envMap
+        });
     }
 
     addShadowPlane() {

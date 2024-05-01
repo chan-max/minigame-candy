@@ -101,23 +101,23 @@ export class BananaCandyContructor extends ElementConstructor {
         this.init()
     }
 
-    scale = 2.5
-
     async init() {
         let gltf = await this.threeController.useGltf('bananaCandy', '/assets/models/candy2.glb')
 
         gltf.scene.traverse((node) => {
-            if (node.isMesh) {
-                if (!this.target) {
-                    this.target = node
-                }
-                node.castShadow = true;
-                // 判断该模型是否有材质并且是否有这两个属性
-                // 设置粗糙度和金属感
-                node.material.roughness = .0;  // 可改为你需要的值，范围通常是0到1
-                node.material.metalness = .3;  // 可改为你需要的值，范围通常是0到1
-                node.material.color = new THREE.Color(0xff0000);
+            if (!node.isMesh) {
+                return
             }
+            if (!this.target) {
+                this.target = node
+                this.threeController.initModelSize(this.target, this.size * 2.5)
+            }
+            node.castShadow = true;
+            // 判断该模型是否有材质并且是否有这两个属性
+            // 设置粗糙度和金属感
+            node.material.roughness = .0;  // 可改为你需要的值，范围通常是0到1
+            node.material.metalness = .3;  // 可改为你需要的值，范围通常是0到1
+            node.material.color = new THREE.Color(0xff0000);
         });
 
         return this
@@ -143,7 +143,7 @@ export class CubeCandyContructor extends ElementConstructor {
         })
 
         const mesh = new THREE.Mesh(geometry, material)
-
+        this.threeController.initModelSize(mesh, this.size * 1.3)
         this.target = mesh
         return this
     }
@@ -163,11 +163,12 @@ export class SphereCandyContructor extends ElementConstructor {
 
         let material = new THREE.MeshStandardMaterial({
             roughness: .0, // 可改为你需要的值，范围通常是0到1
-            metalness: .0, // 可改为你需要的值，范围通常是0到1
-            color: new THREE.Color(0xffffff)
+            metalness: .2, // 可改为你需要的值，范围通常是0到1
+            color: new THREE.Color(0xffff00)
         })
 
         const mesh = new THREE.Mesh(geometry, material)
+        this.threeController.initModelSize(mesh, this.size * 1.3)
         mesh.castShadow = true
         this.target = mesh
         return this

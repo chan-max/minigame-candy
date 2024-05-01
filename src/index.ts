@@ -38,6 +38,11 @@ class CandyEngine {
     this.initChessBoard()
 
     this.threeController.$on(ThreeEvnets.MESH_SWIPE, (mesh, direction) => {
+      
+      if(!mesh._instance){
+        return
+      }
+
       console.log('滑动了元素')
       // 当前滑动的元素坐标
 
@@ -125,17 +130,15 @@ class CandyEngine {
     let columns = 11
     let rows = 11
 
+    /* 设置每个元素的位置和大小 */
+    let paddingPervent = 10
+
+    let size = (Math.min(this.threeController.ruleWidth,this.threeController.ruleHeight) * (1 - paddingPervent / 100)) / Math.max(rows, columns) 
+
     for (let column = 0; column < columns; column++) {
       for (let row = 0; row < rows; row++) {
 
-        /* 设置每个元素的位置和大小 */
-        let paddingPervent = 10
-
-        let size = (this.threeController.ruleWidth * (1 - paddingPervent / 100)) / Math.max(rows, columns) * 1
-
         let element = await this.getRandomCandyElement({ size })
-
-        this.threeController.initModelSize(element.target, size * (element.scale || 1.3))
 
         element.target.position.x = column * size + size / 2 - size * columns / 2
         element.target.position.y = row * size + size / 2 - size * rows / 2

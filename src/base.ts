@@ -14,6 +14,9 @@ export enum ThreeEvnets {
     CLICK = 'click',
     // 元素点击
     MESH_CLICK = 'mesh-click',
+
+    // 画布尺寸发生变化
+    CANVAS_RESIZE = 'canvas-resize',
 }
 
 
