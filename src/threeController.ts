@@ -32,6 +32,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { Helper } from "./base";
 import { ThreeEvnets } from './base'
+import TWEEN from '@tweenjs/tween.js'
 
 export function loadGltf(url) {
     let loader = new GLTFLoader();
@@ -182,7 +183,7 @@ export class ThreeController extends Helper {
         this.camera.far = 10000
         this.camera.updateProjectionMatrix();
     }
-    
+
     initCamera() {
         this.camera = new THREE.OrthographicCamera(- this.ruleWidth / 2, this.ruleWidth / 2, this.ruleHeight / 2, - this.ruleHeight / 2, .1, 10000);
         this.camera.aspect = this.aspectRatio;
@@ -245,6 +246,7 @@ export class ThreeController extends Helper {
 
     render() {
         requestAnimationFrame(this.render.bind(this));
+        TWEEN.update()
         this.renderer.render(this.scene, this.camera);
     }
 
@@ -308,13 +310,10 @@ export class ThreeController extends Helper {
         });
 
         var mesh = new Mesh(geometry, material);
-        // mesh.receiveShadow = true;
         mesh.position.set(0, 0, -1)
         this.scene.add(mesh);
     }
-
-
-
+    
     initHdr() {
         const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
         const hdriLoader = new RGBELoader()

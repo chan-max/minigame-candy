@@ -81,7 +81,7 @@ class CandyEngine {
       this.elementGrid[currentPosition.x][currentPosition.y] = replaceElement
 
       // 替换完进行检测 ，如果没有元素，在置换回来
-
+        
       this.matchChecking()
     })
   }

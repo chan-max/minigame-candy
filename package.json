@@ -9,11 +9,12 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@tweenjs/tween.js": "^23.1.1",
     "@types/three": "^0.163.0",
+    "@vitejs/plugin-vue": "^4.0.0",
     "typescript": "^5.4.5",
     "vite": "^5.2.0",
-    "vite-plugin-require-transform": "^1.0.21",
-    "@vitejs/plugin-vue": "^4.0.0"
+    "vite-plugin-require-transform": "^1.0.21"
   },
   "dependencies": {
     "@capacitor/cli": "^6.0.0",
